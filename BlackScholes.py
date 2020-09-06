@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 @author: Abhirup Mishra
 @Description: The class contains the methods for pricing options using Black-Scholes Formula
@@ -49,48 +48,177 @@ class BlackScholes:
             self.dividend_yield = np.ones(len(spot_price))*dividend_yield
         else:
             self.dividend_yield = dividend_yield                                         
+
             
     #private method for erf function    
     def bls_erf_value(self,input_number):
         erf_out = 0.5*(1 + sp.special.erf(input_number/sqrt(2.0)))
         return erf_out
     
+
     #vectorized method to price call option
     def european_option_price(self):
         
         "Price of the call option"
         "the vectorized method can compute price of multiple options in array"
-        numerator = sp.add(sp.log(sp.divide(self.spot_price,self.strike_price)), sp.multiply((self.interest_rate - self.dividend_yield + 0.5*sp.power(self.sigma,2)),self.time_to_maturity))
-        d1 = sp.divide(numerator,sp.prod([self.sigma,sp.sqrt(self.time_to_maturity)],axis=0))
-        d2 = sp.add(d1, -sp.multiply(self.sigma,sp.sqrt(self.time_to_maturity)))
+        numerator = sp.add(
+			sp.log(
+				sp.divide(
+					self.spot_price,
+					self.strike_price,
+				)
+			),
+			sp.multiply(
+				(
+					self.interest_rate - self.dividend_yield +
+					0.5*sp.power(self.sigma,2)
+				),
+				self.time_to_maturity)
+		)
+        d1 = sp.divide(
+			numerator,
+			sp.prod(
+				[
+					self.sigma,
+					sp.sqrt(self.time_to_maturity)
+				],
+				axis=0,
+			)
+		)
+        d2 = sp.add(
+			d1,
+			-sp.multiply(
+				self.sigma,
+				sp.sqrt(self.time_to_maturity)
+			)
+		)
         
-        ecall = sp.product([self.spot_price, self.bls_erf_value(d1), sp.exp(sp.multiply(-self.dividend_yield,self.time_to_maturity))],axis=0) \
-                          - sp.product([self.strike_price,self.bls_erf_value(d2),sp.exp(-sp.multiply(self.interest_rate,self.time_to_maturity))],axis=0)
+        ecall = sp.product(
+			[
+				self.spot_price,
+				self.bls_erf_value(d1),
+				sp.exp(sp.multiply(-self.dividend_yield,self.time_to_maturity))
+			],
+			axis=0
+		) - sp.product(
+			[
+				self.strike_price,
+				self.bls_erf_value(d2),
+				sp.exp(
+					-sp.multiply(
+						self.interest_rate,
+						self.time_to_maturity,
+					)
+				)
+			],
+			axis=0,
+		)
         
-        eput = sp.product([-self.spot_price, self.bls_erf_value(-d1), sp.exp(sp.multiply(-self.dividend_yield,self.time_to_maturity))],axis=0) \
-                          + sp.product([self.strike_price,self.bls_erf_value(-d2),sp.exp(-sp.multiply(self.interest_rate,self.time_to_maturity))],axis=0)
+        eput = sp.product(
+			[
+				-self.spot_price,
+				self.bls_erf_value(-d1),
+				sp.exp(
+					sp.multiply(
+						-self.dividend_yield,
+						self.time_to_maturity
+					)
+				)
+			],
+			axis=0,
+		) +
+		sp.product(
+			[
+				self.strike_price,
+				self.bls_erf_value(-d2),
+				sp.exp(
+					-sp.multiply(
+						self.interest_rate,
+						self.time_to_maturity
+					)
+				)
+			],
+			axis=0,
+		)
         return ecall, eput
      
+
     #delta of the option
     def european_option_delta(self):
-        numerator = sp.add(sp.log(sp.divide(self.spot_price,self.strike_price)), sp.multiply((self.interest_rate - self.dividend_yield + 0.5*sp.power(self.sigma,2)),self.time_to_maturity))
-        d1 = sp.divide(numerator,sp.prod([self.sigma,sp.sqrt(self.time_to_maturity)],axis=0))
+        numerator = sp.add(
+			sp.log(
+				sp.divide(
+					self.spot_price,
+					self.strike_price
+				)
+			),
+			sp.multiply(
+				( self.interest_rate - self.dividend_yield + 0.5*sp.power(self.sigma,2)),
+				self.time_to_maturity
+			)
+		)
+        d1 = sp.divide(
+			numerator,
+			sp.prod(
+				[
+					self.sigma,
+					sp.sqrt(self.time_to_maturity)
+				],
+				axis=0,
+			)
+		)
         call_delta = self.bls_erf_value(d1)
         put_delta = call_delta - 1 
         
         return call_delta, put_delta
+
     
     #gamma of the option (under construction)
     def european_option_gamma(self):
         pass
+
         
     #vega of the option
     def european_option_vega(self):
-        numerator = sp.add(sp.log(sp.divide(self.spot_price,self.strike_price)), sp.multiply((self.interest_rate - self.dividend_yield + 0.5*sp.power(self.sigma,2)),self.time_to_maturity))
-        d1 = sp.divide(numerator,sp.prod([self.sigma,sp.sqrt(self.time_to_maturity)],axis=0))
+        numerator = sp.add(
+			sp.log(
+				sp.divide(
+					self.spot_price,
+					self.strike_price
+				)
+			),
+			sp.multiply(
+				( self.interest_rate - self.dividend_yield + 0.5*sp.power(self.sigma,2)),
+				self.time_to_maturity
+			)
+		)
+        d1 = sp.divide(
+			numerator,
+			sp.prod(
+				[
+					self.sigma,
+					sp.sqrt(self.time_to_maturity)
+				],
+				axis=0,
+			)
+		)
         
-        val = sp.multiply(sp.multiply(self.spot_price,sp.exp(-sp.multiply(self.dividend_yield,self.time_to_maturity))),sp.exp(-sp.square(d1)*0.5))
-        val = sp.multiply(val,sp.sqrt(self.time_to_maturity))
+        val = sp.multiply(
+			sp.multiply(
+				self.spot_price,
+				sp.exp(
+					-sp.multiply(
+						self.dividend_yield,
+						self.time_to_maturity
+					)
+				)
+			),
+			sp.exp(-sp.square(d1)*0.5)
+		)
+        val = sp.multiply(
+			val,
+			sp.sqrt(self.time_to_maturity)
+		)
         vega = (1/sqrt(2*pi))*val
         
         return vega
